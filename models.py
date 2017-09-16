@@ -19,16 +19,17 @@ class SecurityAvailStatic(models.Model):
                                   help_text="The date and time on which this record expired", blank=True, null=True)
 
 
-class SecurityAvail(models.Model):
+class SecurityAvailDynamic(models.Model):
     """
     Each record in this table represents one available security at a point in time
     """
-    security_avail_static = models.ForeignKey(to=SecurityAvailStatic, blank=True, null=True)
+    security_avail_static = models.ForeignKey(to=SecurityAvailStatic)
+    # security_avail_static = models.ForeignKey(to=SecurityAvailStatic, blank=True)
     name = models.TextField()
     symbol = models.TextField()
 
     # The date & time for this price
-    at_dt = models.DateTimeField(verbose_name="Price Date & Time", default=datetime.datetime.now())
+    at_dt = models.DateTimeField(verbose_name="Price Date & Time", default=django.utils.timezone.now)
     price = models.DecimalField(max_digits=8, decimal_places=2)
     current_rec_fg = models.BooleanField(verbose_name="Current record flag", default=True,
                                          help_text="Set to True for the current version of the record")
@@ -66,7 +67,6 @@ class SecurityAvail(models.Model):
         :param keep_parents:
         :return:
         """
-        # TODO: Change this to logically delete the parent, too - is delete something we'll really do?
         curr_datetime = datetime.datetime.now()
         try:
             with transaction.atomic():  # Starts a transaction
@@ -83,16 +83,24 @@ class SecurityAvail(models.Model):
 
     # TODO: Redefine 'get' method to always go where current_rec_fg == True???
 
-    def update(self):
+    def update(self, old_ver: object):
+        """
+        Does a logical update in which the old version of the record is logically deleted
+        and a new version is inserted into the table
+        :param old_ver: A SecurityAvailDynamic object
+        :return:
+        """
         # TODO: Does this still work?
         """Provides a way to do an update of a security while keeping history"""
         curr_datetime = datetime.datetime.now()
         try:
             with transaction.atomic():  # Starts a transaction
-                # Logically delete the current record
-                self.end_dt = curr_datetime
-                self.current_rec_fg = False
-                self.save(force_update=True)
+                # Logically delete the old record
+                old_ver.end_dt = curr_datetime
+                old_ver.current_rec_fg = False
+                old_ver.save(force_update=True, update_fields=['end_dt', 'current_rec_fg'])
+
+                # Insert the new version
                 self.end_dt = None
                 self.current_rec_fg = True
                 self.save(force_insert=True)
