@@ -31,6 +31,8 @@ class SecurityAvailDynamic(models.Model):
     # The date & time for this price
     at_dt = models.DateTimeField(verbose_name="Price Date & Time", default=django.utils.timezone.now)
     price = models.DecimalField(max_digits=8, decimal_places=2)
+
+    # TODO: Change this to curr_rec_fg
     current_rec_fg = models.BooleanField(verbose_name="Current record flag", default=True,
                                          help_text="Set to True for the current version of the record")
     effective_dt = models.DateTimeField(verbose_name="Record effective date", default=django.utils.timezone.now,

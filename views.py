@@ -2,7 +2,7 @@ import django.utils.timezone
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
 
-from balancer.forms import FormManageSecurity, FormAddSecurity
+from balancer.forms import FormManageSecurity, FormAddSecurity, FormSetSecurities
 from balancer.models import SecurityAvailDynamic
 
 
@@ -72,4 +72,13 @@ def manage_a_security(request):
 
 def maint_avail_securities(request):
     """Show a list of available securities"""
-    return render(request, template_name='avail_securities.html', context={})
+
+    # Get all the records
+    all_security_recs = SecurityAvailDynamic.objects.filter(current_rec_fg__exact=True).values()
+    all_securities_formset = FormSetSecurities(initial=all_security_recs)
+    # for rec in all_securities_formset.initial:
+    # rec['name'] =  '<a href="/balancer/security_manage/?security_avail_static_id=' + \
+    #                str(rec['security_avail_static_id']) + '>' + rec['name'] + '</a>'
+    # rec['name'] =  'BEN - ' + str(rec['name'])
+
+    return render(request, template_name='avail_securities.html', context={'formset': all_securities_formset})

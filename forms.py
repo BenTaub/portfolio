@@ -29,3 +29,6 @@ class FormAddSecurity(FormManageSecurity):
         super(FormManageSecurity, self).__init__(*args, **kwargs)
         self.fields.pop('security_avail_static_id')
         self.fields.pop('id')
+
+
+FormSetSecurities = forms.formset_factory(FormManageSecurity, extra=1, can_delete=True, can_order=True)
