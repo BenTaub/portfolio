@@ -18,8 +18,7 @@ class FormManageSecurity(forms.Form):
     security_avail_static_id = forms.IntegerField(widget=forms.HiddenInput)
     name = forms.CharField(max_length=20, required=True)
     symbol = forms.CharField(max_length=10, min_length=1, required=False)
-    price = forms.DecimalField(decimal_places=2)
-    at_dt = forms.DateTimeField()
+    notes = forms.CharField()
 
 
 class FormAddSecurity(FormManageSecurity):
@@ -31,4 +30,4 @@ class FormAddSecurity(FormManageSecurity):
         self.fields.pop('id')
 
 
-FormSetSecurities = forms.formset_factory(FormManageSecurity, extra=1, can_delete=True, can_order=True)
+FormSetSecurities = forms.formset_factory(FormManageSecurity, extra=0, )

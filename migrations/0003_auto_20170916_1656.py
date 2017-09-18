@@ -21,7 +21,7 @@ class Migration(migrations.Migration):
                 ('symbol', models.TextField()),
                 ('at_dt', models.DateTimeField(default=django.utils.timezone.now, verbose_name='Price Date & Time')),
                 ('price', models.DecimalField(decimal_places=2, max_digits=8)),
-                ('current_rec_fg',
+                ('curr_rec_fg',
                  models.BooleanField(default=True, help_text='Set to True for the current version of the record',
                                      verbose_name='Current record flag')),
                 ('effective_dt', models.DateTimeField(default=django.utils.timezone.now,

@@ -24,17 +24,11 @@ class SecurityAvailDynamic(models.Model):
     Each record in this table represents one available security at a point in time
     """
     security_avail_static = models.ForeignKey(to=SecurityAvailStatic)
-    # security_avail_static = models.ForeignKey(to=SecurityAvailStatic, blank=True)
     name = models.TextField()
     symbol = models.TextField()
-
-    # The date & time for this price
-    at_dt = models.DateTimeField(verbose_name="Price Date & Time", default=django.utils.timezone.now)
-    price = models.DecimalField(max_digits=8, decimal_places=2)
-
-    # TODO: Change this to curr_rec_fg
-    current_rec_fg = models.BooleanField(verbose_name="Current record flag", default=True,
-                                         help_text="Set to True for the current version of the record")
+    notes = models.TextField(blank=True, null=True)
+    curr_rec_fg = models.BooleanField(verbose_name="Current record flag", default=True,
+                                      help_text="Set to True for the current version of the record")
     effective_dt = models.DateTimeField(verbose_name="Record effective date", default=django.utils.timezone.now,
                                         help_text="The date & time on which this record became active")
     end_dt = models.DateTimeField(verbose_name="Record end date",
@@ -74,7 +68,7 @@ class SecurityAvailDynamic(models.Model):
             with transaction.atomic():  # Starts a transaction
                 # Logically delete the record
                 self.end_dt = curr_datetime
-                self.current_rec_fg = False
+                self.curr_rec_fg = False
                 self.save(force_update=True)
                 self.security_avail_static.end_dt = curr_datetime
                 self.security_avail_static.curr_rec_fg = False
@@ -83,7 +77,7 @@ class SecurityAvailDynamic(models.Model):
             # TODO: Do something here!!!
             print(str(db_err))
 
-    # TODO: Redefine 'get' method to always go where current_rec_fg == True???
+    # TODO: Redefine 'get' method to always go where curr_rec_fg == True???
 
     def update(self, old_ver: object):
         """
@@ -100,12 +94,29 @@ class SecurityAvailDynamic(models.Model):
                 # Logically delete the old record
                 old_ver.end_dt = curr_datetime
                 old_ver.current_rec_fg = False
-                old_ver.save(force_update=True, update_fields=['end_dt', 'current_rec_fg'])
+                old_ver.save(force_update=True, update_fields=['end_dt', 'curr_rec_fg'])
 
                 # Insert the new version
                 self.end_dt = None
-                self.current_rec_fg = True
+                self.curr_rec_fg = True
                 self.save(force_insert=True)
         except Error as db_err:
             # TODO: Do something here!!!
             print(str(db_err))
+
+
+class SecurityPriceDynamic(models.Model):
+    """
+    Each record in this table represents the price for one available security at a point in time
+    """
+    security_avail_static = models.ForeignKey(to=SecurityAvailStatic)
+    # The date & time for this price
+    at_dt = models.DateTimeField(verbose_name="Price Date & Time", default=django.utils.timezone.now)
+    price = models.DecimalField(max_digits=8, decimal_places=2)
+    notes = models.TextField(blank=True, null=True)
+    curr_rec_fg = models.BooleanField(verbose_name="Current record flag", default=True,
+                                      help_text="Set to True for the current version of the record")
+    effective_dt = models.DateTimeField(verbose_name="Record effective date", default=django.utils.timezone.now,
+                                        help_text="The date & time on which this record became active")
+    end_dt = models.DateTimeField(verbose_name="Record end date",
+                                  help_text="The date and time on which this record expired", blank=True, null=True)
