@@ -3,7 +3,7 @@ from django.http import HttpResponseRedirect
 from django.shortcuts import render
 
 from balancer.forms import FormManageSecurity, FormAddSecurity, FormSetSecurities
-from balancer.models import SecurityAvailDynamic
+from balancer.models import Security
 
 
 # Create your views here.
@@ -26,7 +26,7 @@ def manage_a_security(request):
                 # There actually was data typed into the blank form_contact, put it into the DB
                 if form_security_details.is_valid():
                     # Save the data in the DB & then redisplay it, with an ID
-                    new_security = SecurityAvailDynamic(
+                    new_security = Security(
                         name=form_security_details.data['name'], symbol=form_security_details.data['symbol'],
                         price=form_security_details.data['price'])
                     new_security.create()
@@ -40,7 +40,7 @@ def manage_a_security(request):
     # This is a request relating to a security that is already in the DB
     # Read the existing record from the DB
     qry_filters = {'security_avail_static_id': request.GET['security_avail_static_id'], 'curr_rec_fg': True}
-    old_security_data = SecurityAvailDynamic.objects.get(**qry_filters)
+    old_security_data = Security.objects.get(**qry_filters)
     old_security_details_form = FormManageSecurity(old_security_data.__dict__)
     new_security_details_form = FormManageSecurity(request.POST, initial=old_security_data.__dict__)
 
@@ -61,7 +61,7 @@ def manage_a_security(request):
             if new_security_details_form.is_valid():
                 # Save the data in the DB & then redisplay it
                 # TODO: Add code to ask the user if they want to update the as_of date if they haven't already
-                new_security = SecurityAvailDynamic(
+                new_security = Security(
                     security_avail_static=old_security_data.security_avail_static,
                     name=new_security_details_form.data['name'], symbol=new_security_details_form.data['symbol'],
                     price=new_security_details_form.data['price'],
@@ -75,7 +75,7 @@ def manage_a_security(request):
 def maint_avail_securities(request):
     """Show a list of available securities"""
     # Get all the records
-    all_security_recs = SecurityAvailDynamic.objects.filter(curr_rec_fg__exact=True).order_by('name').values()
+    all_security_recs = Security.objects.filter(curr_rec_fg__exact=True).order_by('name').values()
     all_securities_formset = FormSetSecurities(initial=all_security_recs)
 
     # TODO: Show the first 50 chars of the 'Notes' field

@@ -7,7 +7,7 @@ from django import forms
 #     """Used to add and manage securities"""
 #
 #     class Meta:
-#         model = SecurityAvailDynamic
+#         model = Security
 #         fields = ['security_avail_static', 'id', 'name', 'symbol', 'price', 'at_dt']
 #         widgets = {'security_avail_static': forms.HiddenInput(), 'id': forms.HiddenInput(), 'name': forms.TextInput(),
 #                    'symbol': forms.TextInput(), 'price': forms.NumberInput(), 'at_dt': forms.DateTimeInput()}
@@ -15,7 +15,7 @@ from django import forms
 class FormManageSecurity(forms.Form):
     # Used to edit a contact
     id = forms.IntegerField(widget=forms.HiddenInput)
-    security_avail_static_id = forms.IntegerField(widget=forms.HiddenInput)
+    # security_avail_static_id = forms.IntegerField(widget=forms.HiddenInput)
     name = forms.CharField(max_length=20, required=True)
     symbol = forms.CharField(max_length=10, min_length=1, required=False)
     notes = forms.CharField()
@@ -26,7 +26,7 @@ class FormAddSecurity(FormManageSecurity):
 
     def __init__(self, *args, **kwargs):
         super(FormManageSecurity, self).__init__(*args, **kwargs)
-        self.fields.pop('security_avail_static_id')
+        # self.fields.pop('security_avail_static_id')
         self.fields.pop('id')
 
 

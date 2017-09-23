@@ -14,7 +14,7 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='SecurityAvailDynamic',
+            name='Security',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('name', models.TextField()),
@@ -39,6 +39,6 @@ class Migration(migrations.Migration):
             name='security_avail_static',
         ),
         migrations.DeleteModel(
-            name='SecurityAvail',
+            name='Security',
         ),
     ]
