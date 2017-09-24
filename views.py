@@ -1,3 +1,5 @@
+import datetime
+
 from django.db import IntegrityError
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
@@ -11,9 +13,9 @@ def home(request):
     """Displays the home screen"""
     return render(request, template_name='home.html')
 
+
 def manage_a_security(request):
     """Add a new or manage an existing security"""
-    # TODO: Show the 'notes' field
     if 'id' not in request.GET:  # This is a request relating to a security that's not in the DB yet
         if request.method == 'GET':  # This is a request to show a blank entry form_contact
             return render(request, template_name='manage_security.html',
@@ -22,7 +24,6 @@ def manage_a_security(request):
             form_security_details = FormAddSecurity(request.POST)
             if form_security_details.is_valid():
                 # Save the data in the DB & then redisplay it, with an ID
-                # TODO: Need to manage key violation if symbol is already in the DB
                 new_security = Security(
                     name=form_security_details.data['name'], symbol=form_security_details.data['symbol'],
                     notes=form_security_details.data['notes'])
@@ -51,12 +52,6 @@ def manage_a_security(request):
         return render(request, template_name='manage_security.html',
                       context={'form_security_details': old_security_details_form})
 
-    # Is this a request to delete the record?
-    if request.POST.get("delete"):
-        # TODO: Put in some 'are you sure?' code
-        old_security_data.delete()
-        return HttpResponseRedirect(redirect_to='/balancer/securities_avail/')
-
     if request.POST.get("save"):
         if new_security_details_form.has_changed():
             if new_security_details_form.is_valid():
@@ -81,9 +76,15 @@ def maint_avail_securities(request):
     # Get all the records
     all_security_recs = Security.objects.order_by('name').values()
     all_securities_formset = FormSetSecurities(initial=all_security_recs)
-    # TODO: Show the first 50 chars of the 'Notes' field
-    # TODO: Add a 'save' flag to the context that saves the records if there are changes to them.
-    # TODO: Add a curr date field to context to give screen a start-point date
-
     return render(request, template_name='avail_securities.html',
                   context={'formset': all_securities_formset})
+
+
+def set_security_prices(request):
+    """Present the user with a list of prices"""
+
+    # TODO: Include a button with link to add a new security - how do you get back here, though?
+    # TODO: Each security should link to the security price history page
+
+    return render(request, template_name='set_security_prices.html',
+                  context={'price_date': datetime.date.today(), 'price_formset': None})
