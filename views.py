@@ -4,7 +4,7 @@ from django.db import IntegrityError
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
 
-from balancer.forms import FormManageSecurity, FormAddSecurity, FormSetSecurities
+from balancer.forms import FormManageSecurity, FormAddSecurity, FormSetSecurities, FormSetSecurityPrices
 from balancer.models import Security
 
 
@@ -84,7 +84,18 @@ def set_security_prices(request):
     """Present the user with a list of prices"""
 
     # TODO: Include a button with link to add a new security - how do you get back here, though?
-    # TODO: Each security should link to the security price history page
+    # TODO: Each security should link to the security price history page - include a graph of stock price over time
+    security_price_recs = Security.objects.values('id', 'name', 'symbol').order_by('name')
+    security_prices_formset = FormSetSecurityPrices(initial=security_price_recs)
 
-    return render(request, template_name='set_security_prices.html',
-                  context={'price_date': datetime.date.today(), 'price_formset': None})
+    if request.method == 'GET':  # request to set up basic price data
+        return render(request, template_name='set_security_prices.html',
+                      context={'price_date': datetime.date.today(), 'price_formset': security_prices_formset})
+
+    # Read through the records & save them to the db
+    security_prices_formset = FormSetSecurityPrices(request.POST)
+    for input_rec in security_prices_formset:
+        print('waiting')
+
+        # return render(request, template_name='set_security_prices.html',
+        #               context={'price_date': datetime.date.today(), 'price_formset': security_prices_formset})

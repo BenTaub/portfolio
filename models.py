@@ -20,7 +20,7 @@ class SecurityPrice(models.Model):
     # The date & time for this price
     at_dt = models.DateField(verbose_name="Price Date", auto_now_add=True)
     # at_dt = models.DateTimeField(verbose_name="Price Date & Time", default=django.utils.timezone.now)
-    price = models.DecimalField(max_digits=8, decimal_places=2)
+    price = models.DecimalField(max_digits=8, decimal_places=2, default=0)
     notes = models.TextField(blank=True, null=True)
     effective_dt = models.DateTimeField(verbose_name="Record effective date", auto_now=True,
                                         help_text="The date & time on which this record became active")
