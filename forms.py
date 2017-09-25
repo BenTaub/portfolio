@@ -23,10 +23,16 @@ FormSetSecurities = forms.formset_factory(FormManageSecurity, extra=0, can_delet
 class FormSecurityPrice(forms.Form):
     # Used to record the price of a security at a point in time
     id = forms.IntegerField(widget=forms.HiddenInput)
-    symbol = forms.CharField(max_length=10, min_length=1, required=False)
-    name = forms.CharField(max_length=20, required=True)
+    # symbol = forms.CharField(max_length=10, min_length=1, required=False, widget=forms.TextInput(attrs={
+    # 'readonly':'readonly'}))
+    symbol = forms.CharField(max_length=10, min_length=1, widget=forms.TextInput(attrs={'readonly': 'readonly'}))
+    # symbol = forms.CharField(max_length=10, min_length=1, disabled=True)
+
+    name = forms.CharField(max_length=20, widget=forms.TextInput(attrs={'readonly': 'readonly', 'outline': 'none'}))
+    # name = forms.CharField(max_length=20, required=True)
     notes = forms.CharField(widget=forms.Textarea, required=False)
     price = forms.DecimalField(widget=forms.NumberInput())
+    at_dt = forms.DateField(widget=forms.HiddenInput, required=False)
 
 
 FormSetSecurityPrices = forms.formset_factory(FormSecurityPrice, extra=0, can_delete=False)

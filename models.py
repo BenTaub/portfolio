@@ -1,5 +1,6 @@
 from django.db import models
 
+
 class Security(models.Model):
     """
     Each record in this table represents one available security at a point in time
@@ -27,3 +28,8 @@ class SecurityPrice(models.Model):
 
     class Meta:
         unique_together = (('security', 'at_dt'),)
+
+
+def store_formset_in_db(formset: dict, model: models):
+    print(str(formset), '\n\n', str(model))
+    pass

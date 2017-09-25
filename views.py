@@ -5,7 +5,7 @@ from django.http import HttpResponseRedirect
 from django.shortcuts import render
 
 from balancer.forms import FormManageSecurity, FormAddSecurity, FormSetSecurities, FormSetSecurityPrices
-from balancer.models import Security
+from balancer.models import Security, SecurityPrice, store_formset_in_db
 
 
 # Create your views here.
@@ -93,9 +93,16 @@ def set_security_prices(request):
                       context={'price_date': datetime.date.today(), 'price_formset': security_prices_formset})
 
     # Read through the records & save them to the db
-    security_prices_formset = FormSetSecurityPrices(request.POST)
-    for input_rec in security_prices_formset:
-        print('waiting')
+    security_prices_formset = FormSetSecurityPrices(request.POST, initial=security_price_recs)
+    if security_prices_formset.is_valid():
+        for input_rec in security_prices_formset:
+            input_rec.cleaned_data['at_dt'] = request.POST['price_date']
+        # TODO: Send input_rec to routine that puts it into the db
+        store_formset_in_db(input_rec.cleaned_data, SecurityPrice)
+    else:
+        return render(request, template_name='set_security_prices.html',
+                      context={'price_date': datetime.date.today(), 'price_formset': security_prices_formset})
 
         # return render(request, template_name='set_security_prices.html',
         #               context={'price_date': datetime.date.today(), 'price_formset': security_prices_formset})
+    return render(request, template_name='home.html')
