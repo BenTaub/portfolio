@@ -1,4 +1,5 @@
 import datetime
+import sys
 
 from django.db import IntegrityError
 from django.http import HttpResponseRedirect
@@ -96,9 +97,18 @@ def set_security_prices(request):
     security_prices_formset = FormSetSecurityPrices(request.POST, initial=security_price_recs)
     if security_prices_formset.is_valid():
         for input_rec in security_prices_formset:
-            input_rec.cleaned_data['at_dt'] = request.POST['price_date']
-        # TODO: Send input_rec to routine that puts it into the db
-        store_formset_in_db(input_rec.cleaned_data, SecurityPrice)
+            input_rec.cleaned_data['price_date'] = request.POST['price_date']
+        try:
+            store_formset_in_db(formset=security_prices_formset, db_model=SecurityPrice,
+                                ignore_in_form=['name', 'symbol', 'id'],
+                                map_model_to_form={'security_id': 'id', 'at_dt': 'price_date'})
+        except:
+            # TODO: This doesn't work!!!! Fix it!!!
+            print(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2])
+            # security_prices_formset['non_form_errors'] = {sys.exc_info()[0]}
+            return render(request, template_name='set_security_prices.html',
+                          context={'price_date': request.POST['price_date'], 'price_formset': security_prices_formset})
+
     else:
         return render(request, template_name='set_security_prices.html',
                       context={'price_date': datetime.date.today(), 'price_formset': security_prices_formset})

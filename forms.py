@@ -32,7 +32,7 @@ class FormSecurityPrice(forms.Form):
     # name = forms.CharField(max_length=20, required=True)
     notes = forms.CharField(widget=forms.Textarea, required=False)
     price = forms.DecimalField(widget=forms.NumberInput())
-    at_dt = forms.DateField(widget=forms.HiddenInput, required=False)
+    price_date = forms.DateField(widget=forms.HiddenInput, required=False)
 
 
 FormSetSecurityPrices = forms.formset_factory(FormSecurityPrice, extra=0, can_delete=False)
