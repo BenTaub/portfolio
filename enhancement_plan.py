@@ -20,3 +20,6 @@
 # TODO: Instructions & info about balancing w/ article links
 # TODO: Provide sample balancing plans
 # TODO: Add Google ads?
+# TODO: Low - Set prices screen - Include a button with link to add a new security
+# TODO: Low - Set prices screen - Each security should link to the security price history page - include a graph of
+# stock price over time

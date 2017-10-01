@@ -76,6 +76,7 @@ def store_form_in_db(form: forms.BaseForm, db_model, ignore_in_form: list = None
                 setattr(new_rec, field, form.cleaned_data[field])
             elif field in map_model_to_form:
                 setattr(new_rec, field, form.cleaned_data[map_model_to_form[field]])
+        # TODO: Modify this to put errors on each record that has an error
         new_rec.save()
 
     if commit_fg:

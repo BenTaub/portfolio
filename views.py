@@ -1,5 +1,4 @@
 import datetime
-import sys
 
 from django.db import IntegrityError
 from django.http import HttpResponseRedirect
@@ -81,19 +80,24 @@ def maint_avail_securities(request):
                   context={'formset': all_securities_formset})
 
 
-def set_security_prices(request):
+def set_security_prices(request, date):
     """Present the user with a list of prices"""
 
-    # TODO: Include a button with link to add a new security - how do you get back here, though?
-    # TODO: Each security should link to the security price history page - include a graph of stock price over time
+    date = datetime.datetime.strptime(date, '%Y-%m-%d')
+
+    # TODO: Add the ability for a user to enter a date, bring up the prices for that date (outer join) and let user
+    # change the prices - can check 'has changed' on each rec
     security_price_recs = Security.objects.values('id', 'name', 'symbol').order_by('name')
     security_prices_formset = FormSetSecurityPrices(initial=security_price_recs)
 
     if request.method == 'GET':  # request to set up basic price data
         return render(request, template_name='set_security_prices.html',
-                      context={'price_date': datetime.date.today(), 'price_formset': security_prices_formset})
+                      context={'price_date': date, 'price_formset': security_prices_formset})
 
-    # Read through the records & save them to the db
+    # TODO: Manage updates as well as the current inserts - how will I know it's an update? Let Django handle this
+    #TODO: If someone changes a price after balancing is done, the old balance will look like it's been incorrectly
+    # calculated. add history tracking to prices table to correct for this
+
     security_prices_formset = FormSetSecurityPrices(request.POST, initial=security_price_recs)
     if security_prices_formset.is_valid():
         for input_rec in security_prices_formset:
@@ -103,16 +107,23 @@ def set_security_prices(request):
                                 ignore_in_form=['name', 'symbol', 'id'],
                                 map_model_to_form={'security_id': 'id', 'at_dt': 'price_date'})
         except:
-            # TODO: This doesn't work!!!! Fix it!!!
-            print(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2])
-            # security_prices_formset['non_form_errors'] = {sys.exc_info()[0]}
+            # security_prices_formset._non_form_errors = sys.exc_info()[1]
+            security_prices_formset.initial = security_prices_formset.cleaned_data
             return render(request, template_name='set_security_prices.html',
-                          context={'price_date': request.POST['price_date'], 'price_formset': security_prices_formset})
+                          context={'price_date': request.POST['price_date'], 'price_formset':
+                              security_prices_formset_backup})
 
     else:
         return render(request, template_name='set_security_prices.html',
                       context={'price_date': datetime.date.today(), 'price_formset': security_prices_formset})
 
-        # return render(request, template_name='set_security_prices.html',
-        #               context={'price_date': datetime.date.today(), 'price_formset': security_prices_formset})
     return render(request, template_name='home.html')
+
+
+def set_price_date(request):
+    """Allows user to set the date for security price entries"""
+    if request.method == 'POST':
+        date = request.POST['date']
+        return HttpResponseRedirect(redirect_to='/balancer/set_security_prices/' + date)
+    return render(request, template_name='set_a_date.html',
+                  context={'heading': "Set A Price Date", 'date': datetime.date.today()})
