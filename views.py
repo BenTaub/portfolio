@@ -83,11 +83,24 @@ def maint_avail_securities(request):
 def set_security_prices(request, date):
     """Present the user with a list of prices"""
 
-    date = datetime.datetime.strptime(date, '%Y-%m-%d')
+    # date = datetime.datetime.strptime(date, '%Y-%m-%d')
+
+    # security_price_recs = Security.objects.values('id', 'name', 'symbol').order_by('name')
+    # existing_price_recs = SecurityPrice.objects.filter(at_dt=date)
+    # security_recs_with_prices = Security.objects.annotate(prices=(SecurityPrice.objects.filter(at_dt=date)))
+    # security_price_recs = security_recs_with_prices | SecurityPrice.objects.exclude(pk__in=security_recs_with_prices)
+
+    # TODO: START HERE BUT I THINK THIS QUERY IS CORRECT NOW!!!!
+    security_price_recs = Security.objects.raw(
+        'select * from balancer_security LEFT OUTER JOIN balancer_securityprice '
+        'ON (balancer_security.id = balancer_securityprice.security_id '
+        'AND balancer_securityprice.at_dt="%s")', params=[date])
+
+    # security_price_recs = Security.objects.values('id', 'name', 'symbol').order_by('name')
 
     # TODO: Add the ability for a user to enter a date, bring up the prices for that date (outer join) and let user
     # change the prices - can check 'has changed' on each rec
-    security_price_recs = Security.objects.values('id', 'name', 'symbol').order_by('name')
+
     security_prices_formset = FormSetSecurityPrices(initial=security_price_recs)
 
     if request.method == 'GET':  # request to set up basic price data
