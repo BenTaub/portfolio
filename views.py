@@ -82,24 +82,17 @@ def maint_avail_securities(request):
 
 def set_security_prices(request, date):
     """Present the user with a list of prices"""
-
-    # date = datetime.datetime.strptime(date, '%Y-%m-%d')
-
-    # security_price_recs = Security.objects.values('id', 'name', 'symbol').order_by('name')
-    # existing_price_recs = SecurityPrice.objects.filter(at_dt=date)
-    # security_recs_with_prices = Security.objects.annotate(prices=(SecurityPrice.objects.filter(at_dt=date)))
-    # security_price_recs = security_recs_with_prices | SecurityPrice.objects.exclude(pk__in=security_recs_with_prices)
-
-    # TODO: START HERE BUT I THINK THIS QUERY IS CORRECT NOW!!!!
-    security_price_recs = Security.objects.raw(
-        'select * from balancer_security LEFT OUTER JOIN balancer_securityprice '
-        'ON (balancer_security.id = balancer_securityprice.security_id '
-        'AND balancer_securityprice.at_dt="%s")', params=[date])
-
-    # security_price_recs = Security.objects.values('id', 'name', 'symbol').order_by('name')
-
-    # TODO: Add the ability for a user to enter a date, bring up the prices for that date (outer join) and let user
-    # change the prices - can check 'has changed' on each rec
+    qry = ('SELECT balancer_security.id, balancer_security.name, balancer_security.symbol, '
+           'balancer_securityprice.at_dt, balancer_securityprice.price, balancer_securityprice.notes, %s AS DATE '
+           'FROM balancer_security LEFT OUTER JOIN balancer_securityprice '
+           'ON (balancer_security.id = balancer_securityprice.security_id '
+           'AND balancer_securityprice.at_dt=%s) '
+           'ORDER BY balancer_security.name')
+    from django.db import connection
+    cursor = connection.cursor()
+    cursor.execute(qry, [date, date])
+    # TODO: START HERE THIS QUERY now works!!!!
+    solution = cursor.fetchall()
 
     security_prices_formset = FormSetSecurityPrices(initial=security_price_recs)
 
