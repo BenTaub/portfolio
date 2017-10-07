@@ -20,46 +20,54 @@ class SecurityPrice(models.Model):
     """
     security = models.ForeignKey(to=Security)
     # The date & time for this price
-    at_dt = models.DateField(verbose_name="Price Date", auto_now_add=True)
-    # at_dt = models.DateTimeField(verbose_name="Price Date & Time", default=django.utils.timezone.now)
+    price_dt = models.DateField(verbose_name="Price Date")
     price = models.DecimalField(max_digits=8, decimal_places=2, default=0)
     notes = models.TextField(blank=True, null=True)
-    effective_dt = models.DateTimeField(verbose_name="Record effective date", auto_now=True,
-                                        help_text="The date & time on which this record became active")
+    effective_dt = models.DateTimeField(verbose_name="Record effective date",
+                                        help_text="The date & time on which this record became active",
+                                        auto_now=True)
 
     class Meta:
-        unique_together = (('security', 'at_dt'),)
+        unique_together = (('security', 'price_dt'),)
 
 
-def store_formset_in_db(formset: forms.BaseFormSet, db_model, ignore_in_form: list = None,
-                        map_model_to_form: dict = None):
+def dictfetchall(cursor):
+    """
+    Gets all the rows from a cursor and returns then in a list of dicts. Each rec is a db rec and each key is
+    the related column name
+    :param cursor: A Django cursor
+    :return:
+    """
+    # TODO: Test that this works with 0, 1 & multiple rows
+    "Return all rows from a cursor as a dict"
+    columns = [col[0] for col in cursor.description]
+    return [
+        dict(zip(columns, row))
+        for row in cursor.fetchall()
+    ]
+
+
+def store_formset_in_db(formset: forms.BaseFormSet, db_model):
     """
     Takes the data from a formset & stores it in a model table. Maps form fields to model fields based on field names.
     map_form_to_model param accomodates name differences if necessary.
     :param formset: The formset containing the data you want to put into the DB
     :param db_model: The model into which you want to store the data
-    :param ignore_in_form: Indicates which form fields not to put into the DB.
-    :param map_form_to_model: maps form field names to model field names as follows form_field_name:model_field_name
     :return:
     """
     with transaction.atomic():  # Starts a transaction
         for one_form in formset:
-            store_form_in_db(form=one_form, db_model=db_model, ignore_in_form=ignore_in_form,
-                             map_model_to_form=map_model_to_form, commit_fg=False)
+            store_form_in_db(form=one_form, db_model=db_model, commit_fg=False)
     return
 
 
-def store_form_in_db(form: forms.BaseForm, db_model, ignore_in_form: list = None, map_model_to_form: dict = None,
-                     commit_fg: bool = True):
+def store_form_in_db(form: forms.BaseForm, db_model, commit_fg: bool = True):
     """
     Takes the data from a formset & stores it in a model table. Maps form fields to model fields based on field names.
-    map_model_to_form param accomodates name differences if necessary.
     NOTE: This function loops through the fields available in the model object. Thus, if the form contains fields not
     in the model, they are ignored.
     :param form: The form containing the data you want to put into the DB
     :param db_model: The model into which you want to store the data
-    :param ignore_in_form: Indicates which form fields not to put into the DB.
-    :param map_model_to_form: maps form field names to model field names as follows form_field_name:model_field_name
     :param commit_fg: Determines whether this function should issue a commit or not
     :return:
     """
@@ -68,15 +76,13 @@ def store_form_in_db(form: forms.BaseForm, db_model, ignore_in_form: list = None
         """
         actually inserts data in the db
         """
+        if not form.has_changed():
+            return
         new_rec = db_model()
         for field in new_rec.__dict__:
-            if field in ignore_in_form:
-                continue
-            elif field in form.cleaned_data:
+            if field in form.cleaned_data:
                 setattr(new_rec, field, form.cleaned_data[field])
-            elif field in map_model_to_form:
-                setattr(new_rec, field, form.cleaned_data[map_model_to_form[field]])
-        # TODO: Modify this to put errors on each record that has an error
+        # # TODO: Modify this to put errors on each record that has an error
         new_rec.save()
 
     if commit_fg:

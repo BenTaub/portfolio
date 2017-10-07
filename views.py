@@ -5,7 +5,7 @@ from django.http import HttpResponseRedirect
 from django.shortcuts import render
 
 from balancer.forms import FormManageSecurity, FormAddSecurity, FormSetSecurities, FormSetSecurityPrices
-from balancer.models import Security, SecurityPrice, store_formset_in_db
+from balancer.models import Security, SecurityPrice, store_formset_in_db, dictfetchall
 
 
 # Create your views here.
@@ -82,46 +82,39 @@ def maint_avail_securities(request):
 
 def set_security_prices(request, date):
     """Present the user with a list of prices"""
-    qry = ('SELECT balancer_security.id, balancer_security.name, balancer_security.symbol, '
-           'balancer_securityprice.at_dt, balancer_securityprice.price, balancer_securityprice.notes, %s AS DATE '
+    qry = ('SELECT balancer_security.id AS security_id, balancer_security.name, balancer_security.symbol, '
+           'balancer_securityprice.id, '
+           '%s AS price_dt, balancer_securityprice.price, balancer_securityprice.notes '
+           # 'balancer_securityprice.price_dt, balancer_securityprice.price, balancer_securityprice.notes, %s AS DATE '
            'FROM balancer_security LEFT OUTER JOIN balancer_securityprice '
            'ON (balancer_security.id = balancer_securityprice.security_id '
-           'AND balancer_securityprice.at_dt=%s) '
+           'AND balancer_securityprice.price_dt=%s) '
            'ORDER BY balancer_security.name')
     from django.db import connection
     cursor = connection.cursor()
     cursor.execute(qry, [date, date])
-    # TODO: START HERE THIS QUERY now works!!!!
-    solution = cursor.fetchall()
 
+    security_price_recs = dictfetchall(cursor=cursor)
     security_prices_formset = FormSetSecurityPrices(initial=security_price_recs)
 
     if request.method == 'GET':  # request to set up basic price data
         return render(request, template_name='set_security_prices.html',
                       context={'price_date': date, 'price_formset': security_prices_formset})
 
-    # TODO: Manage updates as well as the current inserts - how will I know it's an update? Let Django handle this
     #TODO: If someone changes a price after balancing is done, the old balance will look like it's been incorrectly
     # calculated. add history tracking to prices table to correct for this
 
+    # This isn't a GET so it must have been a POST
     security_prices_formset = FormSetSecurityPrices(request.POST, initial=security_price_recs)
+    # TODO: actually putting NONE in text field!!! CHECK THE HTML TEMPLATE!!!!
     if security_prices_formset.is_valid():
-        for input_rec in security_prices_formset:
-            input_rec.cleaned_data['price_date'] = request.POST['price_date']
-        try:
-            store_formset_in_db(formset=security_prices_formset, db_model=SecurityPrice,
-                                ignore_in_form=['name', 'symbol', 'id'],
-                                map_model_to_form={'security_id': 'id', 'at_dt': 'price_date'})
-        except:
-            # security_prices_formset._non_form_errors = sys.exc_info()[1]
-            security_prices_formset.initial = security_prices_formset.cleaned_data
-            return render(request, template_name='set_security_prices.html',
-                          context={'price_date': request.POST['price_date'], 'price_formset':
-                              security_prices_formset_backup})
+        # try:
+        store_formset_in_db(formset=security_prices_formset, db_model=SecurityPrice)
+        # except:
 
     else:
         return render(request, template_name='set_security_prices.html',
-                      context={'price_date': datetime.date.today(), 'price_formset': security_prices_formset})
+                      context={'price_date': date, 'price_formset': security_prices_formset})
 
     return render(request, template_name='home.html')
 
