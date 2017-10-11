@@ -5,9 +5,12 @@
 
 # TODO: M Provide different balancing options (e.g. lock cash in certain accounts)
 # TODO: M Move DB to Postgres or MySQL
-# TODO: M Pretty up fron tend! (html, css, Javascript - later)
+# TODO: M Pretty up front end! (html, css, Javascript - later)
 # TODO: M Menu bar
 # TODO: M Instructions & info about balancing w/ article links
+
+# TODO: L Add the capability to create a personal financial stmt (for each asset, indicate the account(perhaps accts
+# are assets that can contain sub-assets?). Indicate if it's part of a balancing)
 
 # TODO: L Automatically update security prices daily
 # TODO: L Develop charting functionality (portfolio value, share value, holding value, holding as percent of

@@ -1,6 +1,7 @@
 import datetime
 
 from django.db import IntegrityError
+from django.db import connection
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
 
@@ -90,7 +91,6 @@ def set_security_prices(request, date):
            'ON (balancer_security.id = balancer_securityprice.security_id '
            'AND balancer_securityprice.price_dt=%s) '
            'ORDER BY balancer_security.name')
-    from django.db import connection
     cursor = connection.cursor()
     cursor.execute(qry, [date, date])
 
@@ -108,10 +108,7 @@ def set_security_prices(request, date):
     security_prices_formset = FormSetSecurityPrices(request.POST, initial=security_price_recs)
     # TODO: actually putting NONE in text field!!! CHECK THE HTML TEMPLATE!!!!
     if security_prices_formset.is_valid():
-        # try:
         store_formset_in_db(formset=security_prices_formset, db_model=SecurityPrice)
-        # except:
-
     else:
         return render(request, template_name='set_security_prices.html',
                       context={'price_date': date, 'price_formset': security_prices_formset})

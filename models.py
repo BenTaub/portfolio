@@ -38,7 +38,6 @@ def dictfetchall(cursor):
     :param cursor: A Django cursor
     :return:
     """
-    # TODO: Test that this works with 0, 1 & multiple rows
     "Return all rows from a cursor as a dict"
     columns = [col[0] for col in cursor.description]
     return [

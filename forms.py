@@ -2,7 +2,7 @@ from django import forms
 
 
 class FormManageSecurity(forms.Form):
-    # Used to edit a contact
+    # Used to edit a security
     id = forms.IntegerField(widget=forms.HiddenInput)
     symbol = forms.CharField(max_length=10, min_length=1, required=False)
     name = forms.CharField(max_length=20, required=True)
@@ -26,8 +26,8 @@ class FormSecurityPrice(forms.Form):
     security_id = forms.IntegerField(widget=forms.HiddenInput)
     symbol = forms.CharField(max_length=10, min_length=1, widget=forms.TextInput(attrs={'readonly': 'readonly'}))
     name = forms.CharField(max_length=20, widget=forms.TextInput(attrs={'readonly': 'readonly', 'outline': 'none'}))
-    notes = forms.CharField(widget=forms.Textarea, required=False)
-    price = forms.DecimalField(widget=forms.NumberInput())
+    notes = forms.CharField(widget=forms.Textarea(attrs={'rows': 3, 'cols': 40}), required=False)
+    price = forms.DecimalField(widget=forms.NumberInput(attrs={'step': '0.05', 'text-align': 'right;'}))
     price_dt = forms.DateField(widget=forms.HiddenInput)
 
 
