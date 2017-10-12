@@ -6,9 +6,11 @@ import balancer.models
 
 
 class Dictfetchall(TestCase):
-    def tearDown(self):
-        test_tbl = balancer.models.Security()
-        test_tbl.objects.all().delete()
+    # def tearDown(self):
+    #     Security().objects.all().delete()
+    #     # balancer.models.Security().objects.all().delete()
+    #     # test_tbl = balancer.models.Security()
+    #     # test_tbl.objects.all().delete()
 
     def create_test_recs(self, num_recs: int = 1):
         """
@@ -26,28 +28,24 @@ class Dictfetchall(TestCase):
             }
             new_rec = balancer.models.Security(**test_vals)
             new_rec.save()
-            test_vals['effective_dt'] = new_rec.effective_dt
+            test_vals['effective_dt'] = new_rec.effective_dt.replace(tzinfo=None)
             rec_list.append(test_vals)
         cursor = connection.cursor()
         cursor.execute('SELECT * FROM balancer_security')
         return rec_list, cursor
 
-    def compare_result_to_test_recs(self, test_recs: list, cursor: connection.cursor):
-        db_recs = balancer.models.dictfetchall(cursor=cursor)
-        if db_recs == test_recs:
-            return True
-        else:
-            return False
-
-    # def test_no_recs(self):
-    #     self.assertEqual(True, False)
+    def test_no_recs(self):
+        test_recs, cursor = self.create_test_recs(num_recs=0)
+        self.assertListEqual(test_recs, balancer.models.dictfetchall(cursor=cursor))
 
     def test_1_rec(self):
         test_recs, cursor = self.create_test_recs(num_recs=1)
-        self.assertEqual(self.compare_result_to_test_recs(test_recs=test_recs, cursor=cursor), True)
+        self.assertListEqual(test_recs, balancer.models.dictfetchall(cursor=cursor))
 
+    def test_mult_recs(self):
+        test_recs, cursor = self.create_test_recs(num_recs=3)
+        self.assertListEqual(test_recs, balancer.models.dictfetchall(cursor=cursor))
 
-        # def test_mult_recs(self):
 
 # if __name__ == '__main__':
 #     unittest.main()
