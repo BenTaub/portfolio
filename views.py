@@ -5,8 +5,8 @@ from django.db import connection
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
 
-from balancer.forms import FormManageSecurity, FormAddSecurity, FormSetSecurities, FormSetSecurityPrices
-from balancer.models import Security, SecurityPrice, store_formset_in_db, dictfetchall
+from balancer.forms import FormManageSecurity, FormAddSecurity, FormSetSecurities, FormSetSecurityPrices, FormAccount
+from balancer.models import Security, SecurityPrice, store_formset_in_db, dictfetchall, Account
 
 
 # Create your views here.
@@ -101,12 +101,8 @@ def set_security_prices(request, date):
         return render(request, template_name='set_security_prices.html',
                       context={'price_date': date, 'price_formset': security_prices_formset})
 
-    #TODO: If someone changes a price after balancing is done, the old balance will look like it's been incorrectly
-    # calculated. add history tracking to prices table to correct for this
-
     # This isn't a GET so it must have been a POST
     security_prices_formset = FormSetSecurityPrices(request.POST, initial=security_price_recs)
-    # TODO: actually putting NONE in text field!!! CHECK THE HTML TEMPLATE!!!!
     if security_prices_formset.is_valid():
         store_formset_in_db(formset=security_prices_formset, db_model=SecurityPrice)
     else:
@@ -123,3 +119,30 @@ def set_price_date(request):
         return HttpResponseRedirect(redirect_to='/balancer/set_security_prices/' + date)
     return render(request, template_name='set_a_date.html',
                   context={'heading': "Set A Price Date", 'date': datetime.date.today()})
+
+
+def maint_accts(request, acct_id):
+    """Allows user to maintain their investment accounts"""
+    if acct_id != '':
+        # TODO: Crashes if acct_id is not found. Do I need to test for this? How could it happen?
+        db_rec = Account.objects.get(id=acct_id)
+
+    if request.method == 'GET':
+        if acct_id == '':  # Request to enter a new account
+            return render(request, template_name='manage_account.html', context={'form_acct': FormAccount()})
+        else:
+            form_acct = FormAccount(instance=db_rec)
+            return render(request, template_name='manage_account.html', context={'form_acct': form_acct})
+
+    # Not a GET so must be a POST
+    if acct_id != '':
+        form_acct = FormAccount(request.POST, instance=db_rec)
+    else:
+        form_acct = FormAccount(request.POST)
+
+    if form_acct.is_valid():
+        form_acct.save()
+        return HttpResponseRedirect(redirect_to='/balancer/holdings/' + str(form_acct.instance.id))
+    else:
+        return render(request, template_name='manage_account.html',
+                      context={'form_acct': form_acct, 'instance': None})

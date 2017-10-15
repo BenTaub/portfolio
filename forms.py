@@ -1,4 +1,7 @@
 from django import forms
+from django.forms import ModelForm
+
+from balancer.models import Account
 
 
 class FormManageSecurity(forms.Form):
@@ -27,11 +30,19 @@ class FormSecurityPrice(forms.Form):
     symbol = forms.CharField(max_length=10, min_length=1, widget=forms.TextInput(attrs={'readonly': 'readonly'}))
     name = forms.CharField(max_length=20, widget=forms.TextInput(attrs={'readonly': 'readonly', 'outline': 'none'}))
     notes = forms.CharField(widget=forms.Textarea(attrs={'rows': 3, 'cols': 40}), required=False)
-    price = forms.DecimalField(widget=forms.NumberInput(attrs={'step': '0.05', 'text-align': 'right;'}))
+    price = forms.DecimalField(widget=forms.NumberInput(attrs={'step': '0.01', 'max': '999999',
+                                                               'text-align': 'right;'}))
     price_dt = forms.DateField(widget=forms.HiddenInput)
 
 
 FormSetSecurityPrices = forms.formset_factory(FormSecurityPrice, extra=0, can_delete=False)
 
-# TODO: SCREEN WITH DATE FIELD + EACH SECURITY W/ PRICE AND NOTES (set_security_prices.html)
-# TODO: SCREEN FOR ONE SECURITY LISTING ALL PAST DATES, PRICES, & NOTES (security_price_history.html)
+
+class FormAccount(ModelForm):
+    class Meta:
+        model = Account
+        fields = ['id', 'name', 'institution', 'acct_num', 'open_dt', 'close_dt', 'notes']
+        widgets = {'name': forms.TextInput, 'institution': forms.TextInput, 'acct_num': forms.TextInput,
+                   # 'open_dt': forms.TextInput(attrs={'type': 'date'}), 'close_dt': forms.SelectDateWidget}
+                   'open_dt': forms.TextInput(attrs={'type': 'date'}),
+                   'close_dt': forms.TextInput(attrs={'type': 'date'})}

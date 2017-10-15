@@ -1,3 +1,4 @@
+import django.utils.timezone
 from django import forms
 from django.db import models, transaction
 
@@ -30,28 +31,29 @@ class SecurityPrice(models.Model):
         unique_together = (('security', 'price_dt'),)
 
 
-class account(models.Model):
+class Account(models.Model):
     """
     Each record represents an account that contains shares or other holdings
     """
-    name = models.TextField(blank=True)
+    name = models.TextField()
     institution = models.TextField(verbose_name='Financial Institution', blank=True)
-    acct_num = models.TextField(name='Account Number', blank=True)
+    acct_num = models.TextField(verbose_name='Account Number', blank=True)
     notes = models.TextField(blank=True, null=True)
-    open_dt = models.DateField(name='Open Date')
-    close_dt = models.DateField(name='Close Date', blank=True, null=True)
+    open_dt = models.DateField(verbose_name='Open Date', blank=True, null=True)
+    close_dt = models.DateField(verbose_name='Close Date', blank=True, null=True)
     effective_dt = models.DateTimeField(verbose_name="Record effective date",
                                         help_text="The date & time on which this record became active",
                                         auto_now=True)
 
 
-class holding(models.Model):
+class Holding(models.Model):
     """Each record represents one security held in an account at a point in time"""
     asset = models.ForeignKey(to=Security)
-    account = models.ForeignKey(to=account, blank=True, null=True)  # Assets aren't necessarily in an account
+    account = models.ForeignKey(to=Account, blank=True, null=True)  # Assets aren't necessarily in an account
     notes = models.TextField(blank=True, null=True)
     num_shares = models.DecimalField(decimal_places=2, max_digits=8)  # A negative amount refers to a liability
-    as_of_dt = models.DateField(name='As Of')  # The date on which this # of shares started to apply
+    as_of_dt = models.DateField(verbose_name='As Of',
+                                default=django.utils.timezone.now)  # The date on which this # of shares started to apply
     effective_dt = models.DateTimeField(verbose_name="Record effective date",
                                         help_text="The date & time on which this record became active",
                                         auto_now=True)
