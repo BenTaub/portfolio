@@ -1,7 +1,7 @@
 from django import forms
 from django.forms import ModelForm
 
-from balancer.models import Account
+from balancer.models import Account, Holding
 
 
 class FormManageSecurity(forms.Form):
@@ -43,6 +43,12 @@ class FormAccount(ModelForm):
         model = Account
         fields = ['id', 'name', 'institution', 'acct_num', 'open_dt', 'close_dt', 'notes']
         widgets = {'name': forms.TextInput, 'institution': forms.TextInput, 'acct_num': forms.TextInput,
-                   # 'open_dt': forms.TextInput(attrs={'type': 'date'}), 'close_dt': forms.SelectDateWidget}
                    'open_dt': forms.TextInput(attrs={'type': 'date'}),
                    'close_dt': forms.TextInput(attrs={'type': 'date'})}
+
+
+class FormAccountHolding(ModelForm):
+    class Meta:
+        model = Holding
+        fields = ['account', 'asset', 'num_shares', 'as_of_dt', 'notes']
+        widgets = {'as_of_dt': forms.TextInput(attrs={'type': 'date'})}

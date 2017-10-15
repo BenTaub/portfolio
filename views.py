@@ -5,7 +5,8 @@ from django.db import connection
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
 
-from balancer.forms import FormManageSecurity, FormAddSecurity, FormSetSecurities, FormSetSecurityPrices, FormAccount
+from balancer.forms import FormManageSecurity, FormAddSecurity, FormSetSecurities, FormSetSecurityPrices, \
+    FormAccount, FormAccountHolding
 from balancer.models import Security, SecurityPrice, store_formset_in_db, dictfetchall, Account
 
 
@@ -142,7 +143,30 @@ def maint_accts(request, acct_id):
 
     if form_acct.is_valid():
         form_acct.save()
-        return HttpResponseRedirect(redirect_to='/balancer/holdings/' + str(form_acct.instance.id))
+        return HttpResponseRedirect(redirect_to='/balancer/acct/' + str(form_acct.instance.id))
     else:
         return render(request, template_name='manage_account.html',
                       context={'form_acct': form_acct, 'instance': None})
+
+
+def add_holding_to_acct(request):
+    """Allows user to add a holding to a particular account"""
+    # TODO: Currently does not handle edits to past entries or moving holdings to new accts
+    if request.method == 'GET':
+        assignment_form = FormAccountHolding()
+        return render(request, template_name='add_holding_to_acct.html', context={'form': assignment_form})
+
+    # Not a GET so must be a POST
+    assignment_form = FormAccountHolding(request.POST, instance=request.POST.values)
+    # if acct_id != '':
+    #     form_acct = FormAccount(request.POST, instance=db_rec)
+    # else:
+    #     form_acct = FormAccount(request.POST)
+    #
+    # if form_acct.is_valid():
+    #     form_acct.save()
+    #     return HttpResponseRedirect(redirect_to='/balancer/acct/' + str(form_acct.instance.id))
+    # else:
+    #     return render(request, template_name='manage_account.html',
+    #                   context={'form_acct': form_acct, 'instance': None})
+    return render(request, template_name='add_holding_to_acct.html', context={'form': assignment_form})

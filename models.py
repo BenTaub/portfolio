@@ -14,6 +14,8 @@ class Security(models.Model):
     effective_dt = models.DateTimeField(verbose_name="Record effective date", auto_now=True,
                                         help_text="The date & time on which this record became active")
 
+    def __str__(self): return self.symbol + ': ' + self.name
+
 
 class SecurityPrice(models.Model):
     """
@@ -44,6 +46,8 @@ class Account(models.Model):
     effective_dt = models.DateTimeField(verbose_name="Record effective date",
                                         help_text="The date & time on which this record became active",
                                         auto_now=True)
+
+    def __str__(self): return self.name
 
 
 class Holding(models.Model):
