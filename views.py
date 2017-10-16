@@ -7,7 +7,7 @@ from django.shortcuts import render
 
 from balancer.forms import FormManageSecurity, FormAddSecurity, FormSetSecurities, FormSetSecurityPrices, \
     FormAccount, FormAccountHolding
-from balancer.models import Security, SecurityPrice, store_formset_in_db, dictfetchall, Account
+from balancer.models import Security, SecurityPrice, store_formset_in_db, dictfetchall, Account, Holding
 
 
 # Create your views here.
@@ -149,24 +149,29 @@ def maint_accts(request, acct_id):
                       context={'form_acct': form_acct, 'instance': None})
 
 
-def add_holding_to_acct(request):
+def add_holding_to_acct(request, holding_id):
     """Allows user to add a holding to a particular account"""
     # TODO: Currently does not handle edits to past entries or moving holdings to new accts
+    # TODO: If rec for selected date doesn't exist, insert, else update
+    # TODO: Add support for previous & next buttons
+    if holding_id != '':
+        db_rec = Holding.objects.get(id=holding_id)
+
     if request.method == 'GET':
-        assignment_form = FormAccountHolding()
-        return render(request, template_name='add_holding_to_acct.html', context={'form': assignment_form})
+        if holding_id == '':  # Request to add a new holding
+            return render(request, template_name='add_holding_to_acct.html', context={'form': FormAccountHolding()})
+        else:
+            form_assignment = FormAccountHolding(instance=db_rec)
+            return render(request, template_name='add_holding_to_acct.html', context={'form': form_assignment})
 
     # Not a GET so must be a POST
-    assignment_form = FormAccountHolding(request.POST, instance=request.POST.values)
-    # if acct_id != '':
-    #     form_acct = FormAccount(request.POST, instance=db_rec)
-    # else:
-    #     form_acct = FormAccount(request.POST)
-    #
-    # if form_acct.is_valid():
-    #     form_acct.save()
-    #     return HttpResponseRedirect(redirect_to='/balancer/acct/' + str(form_acct.instance.id))
-    # else:
-    #     return render(request, template_name='manage_account.html',
-    #                   context={'form_acct': form_acct, 'instance': None})
-    return render(request, template_name='add_holding_to_acct.html', context={'form': assignment_form})
+    if holding_id == '':  # This is a new holding rec
+        form_assignment = FormAccountHolding(request.POST)
+    else:
+        form_assignment = FormAccountHolding(request.POST, instance=db_rec)
+    if form_assignment.is_valid():
+        form_assignment.save()
+        return HttpResponseRedirect(redirect_to='/balancer/acct/holding/' + str(form_assignment.instance.id))
+    else:
+        return render(request, template_name='manage_account.html',
+                      context={'form_acct': form_assignment, 'instance': None})

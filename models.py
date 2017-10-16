@@ -62,6 +62,16 @@ class Holding(models.Model):
                                         help_text="The date & time on which this record became active",
                                         auto_now=True)
 
+    class Meta:
+        unique_together = (('asset', 'account', 'as_of_dt'),)
+
+    def save(self, *args, **kwargs):
+        # NOTE: Intention of this approach is to update existing records & insert new ones, putting the record ID
+        # on the rec used in the original save call - I tested it and it seems to work
+        # Query Holding the date - acct - security combination on curr rec
+        # If it exists, take its ID and put it on the current record - this should force an update
+        # If not, remove id from the current record - this should force an insert
+        super(Holding, self).save(*args, **kwargs)  # Call the "real" save() method.
 
 
 def dictfetchall(cursor):
