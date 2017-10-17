@@ -68,8 +68,17 @@ class Holding(models.Model):
     def save(self, *args, **kwargs):
         # NOTE: Intention of this approach is to update existing records & insert new ones, putting the record ID
         # on the rec used in the original save call - I tested it and it seems to work
+
         # Query Holding the date - acct - security combination on curr rec
         # If it exists, take its ID and put it on the current record - this should force an update
+        test_rec = Holding.objects.filter(as_of_dt__exact=self.as_of_dt, account__exact=self.account,
+                                          asset__exact=self.asset)
+
+        # DB constraint should protect against getting more than one rec so not testing for that
+        if test_rec.exists():
+            self.id = test_rec.values()[0]['id']
+        else:
+            self.id = None
         # If not, remove id from the current record - this should force an insert
         super(Holding, self).save(*args, **kwargs)  # Call the "real" save() method.
 

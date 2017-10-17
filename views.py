@@ -151,8 +151,6 @@ def maint_accts(request, acct_id):
 
 def add_holding_to_acct(request, holding_id):
     """Allows user to add a holding to a particular account"""
-    # TODO: Currently does not handle edits to past entries or moving holdings to new accts
-    # TODO: If rec for selected date doesn't exist, insert, else update
     # TODO: Add support for previous & next buttons
     if holding_id != '':
         db_rec = Holding.objects.get(id=holding_id)
@@ -168,6 +166,10 @@ def add_holding_to_acct(request, holding_id):
     if holding_id == '':  # This is a new holding rec
         form_assignment = FormAccountHolding(request.POST)
     else:
+        if 'delete' in request.POST:
+            Holding.objects.filter(id=holding_id).delete()
+            # TODO: Change this redirect to go back to the list of all holdings
+            return HttpResponseRedirect(redirect_to='/balancer')
         form_assignment = FormAccountHolding(request.POST, instance=db_rec)
     if form_assignment.is_valid():
         form_assignment.save()
