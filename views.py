@@ -152,28 +152,38 @@ def maint_accts(request, acct_id):
 def add_holding_to_acct(request, holding_id):
     """Allows user to add a holding to a particular account"""
     # TODO: Add support for previous & next buttons
+    db_rec = None
     if holding_id != '':
         db_rec = Holding.objects.get(id=holding_id)
+        if 'previous' in request.POST:
+            prev_rec = (Holding.objects
+                        .filter(as_of_dt__date=db_rec.as_of_dt))
+        elif 'next' in request.POST:
+            db_rec = Holding.objects.get(id=holding_id)
 
     if request.method == 'GET':
         if holding_id == '':  # Request to add a new holding
-            return render(request, template_name='add_holding_to_acct.html', context={'form': FormAccountHolding()})
+            return render(request, template_name='add_holding_to_acct.html',
+                          context={'form': FormAccountHolding()})
         else:
-            form_assignment = FormAccountHolding(instance=db_rec)
+            form_assignment = FormAccountHolding(instance=db_rec, new_holding=False)
             return render(request, template_name='add_holding_to_acct.html', context={'form': form_assignment})
 
     # Not a GET so must be a POST
+    if 'new' in request.POST:
+        return HttpResponseRedirect(redirect_to='/balancer/acct/holding')
+
     if holding_id == '':  # This is a new holding rec
-        form_assignment = FormAccountHolding(request.POST)
+        form_assignment = FormAccountHolding(request.POST, new_holding=True)
     else:
         if 'delete' in request.POST:
             Holding.objects.filter(id=holding_id).delete()
             # TODO: Change this redirect to go back to the list of all holdings
             return HttpResponseRedirect(redirect_to='/balancer')
-        form_assignment = FormAccountHolding(request.POST, instance=db_rec)
+        form_assignment = FormAccountHolding(request.POST, instance=db_rec, new_holding=False)
     if form_assignment.is_valid():
         form_assignment.save()
         return HttpResponseRedirect(redirect_to='/balancer/acct/holding/' + str(form_assignment.instance.id))
     else:
-        return render(request, template_name='manage_account.html',
-                      context={'form_acct': form_assignment, 'instance': None})
+        return render(request, template_name='add_holding_to_acct.html',
+                      context={'form': form_assignment})

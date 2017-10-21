@@ -48,7 +48,20 @@ class FormAccount(ModelForm):
 
 
 class FormAccountHolding(ModelForm):
+    def __init__(self, *args, **kwargs):
+        # If we are updating an existing holding, make sure we can only change num shares & notes. Other changes
+        # will result in inserts which could be not what users expect
+        if 'new_holding' in kwargs:
+            new_holding = kwargs.pop('new_holding')
+        else:
+            new_holding = True
+        super(FormAccountHolding, self).__init__(*args, **kwargs)
+        if not new_holding:
+            self.fields['account'].disabled = True
+            self.fields['asset'].disabled = True
+            self.fields['as_of_dt'].disabled = True
+
     class Meta:
         model = Holding
-        fields = ['account', 'asset', 'num_shares', 'as_of_dt', 'notes']
+        fields = ['account', 'asset', 'as_of_dt', 'num_shares', 'notes']
         widgets = {'as_of_dt': forms.TextInput(attrs={'type': 'date'})}
