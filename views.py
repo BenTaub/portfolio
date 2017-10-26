@@ -85,8 +85,7 @@ def maint_avail_securities(request):
 def set_security_prices(request, date):
     """Present the user with a list of prices"""
     qry = ('SELECT balancer_security.id AS security_id, balancer_security.name, balancer_security.symbol, '
-           'balancer_securityprice.id, '
-           '%s AS price_dt, balancer_securityprice.price, balancer_securityprice.notes '
+           'balancer_securityprice.id, %s AS price_dt, balancer_securityprice.price, balancer_securityprice.notes '
            # 'balancer_securityprice.price_dt, balancer_securityprice.price, balancer_securityprice.notes, %s AS DATE '
            'FROM balancer_security LEFT OUTER JOIN balancer_securityprice '
            'ON (balancer_security.id = balancer_securityprice.security_id '
@@ -155,11 +154,19 @@ def add_holding_to_acct(request, holding_id):
     db_rec = None
     if holding_id != '':
         db_rec = Holding.objects.get(id=holding_id)
+        # TODO: We should include some sort of indicator on the screen when you're at the first or last item
         if 'previous' in request.POST:
             prev_rec = (Holding.objects
-                        .filter(as_of_dt__date=db_rec.as_of_dt))
+                        .filter(asset=db_rec.asset, account=db_rec.account, as_of_dt__lt=db_rec.as_of_dt)
+                        .order_by('-as_of_dt'))
+            if len(prev_rec) > 0:
+                return HttpResponseRedirect(redirect_to='/balancer/acct/holding/' + str(prev_rec[0].id))
         elif 'next' in request.POST:
-            db_rec = Holding.objects.get(id=holding_id)
+            next_rec = (Holding.objects
+                        .filter(asset=db_rec.asset, account=db_rec.account, as_of_dt__gt=db_rec.as_of_dt)
+                        .order_by('as_of_dt'))
+            if len(next_rec) > 0:
+                return HttpResponseRedirect(redirect_to='/balancer/acct/holding/' + str(next_rec[0].id))
 
     if request.method == 'GET':
         if holding_id == '':  # Request to add a new holding
