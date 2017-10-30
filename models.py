@@ -1,5 +1,7 @@
 import django.utils.timezone
 from django import forms
+# import datetime
+from django.db import connection
 from django.db import models, transaction
 
 
@@ -143,3 +145,45 @@ def store_form_in_db(form: forms.BaseForm, db_model, commit_fg: bool = True):
         insert_rec()
 
     return
+
+
+def get_holdings_and_values(at_dts: list):
+    """
+    Accepts a single date or a set of dates and returns a list of dicts. The key of each dict represents one of the
+    dates in at_dts. The values of each dict is another list of dicts with details about the value of each holding at
+    the date represented by the parent dict's key.
+    :param at_dts:
+    :return:
+    """
+    # Turn at_dts into a list if only a single date was received
+    if type(at_dts) != list:
+        at_dts = [at_dts]
+
+    sql = ("SELECT DATE('2017-10-28') AS AT_DT, " +
+           "balancer_holding.id, balancer_holding.account_id, balancer_account.name, " +
+           "balancer_holding.asset_id, balancer_security.name, " +
+           "balancer_holding.as_of_dt, balancer_holding.num_shares, " +
+           "balancer_securityprice.price_dt, balancer_securityprice.price, " +
+           "balancer_holding.num_shares * balancer_securityprice.price AS value " +
+           "FROM balancer_holding " +
+           "LEFT OUTER JOIN balancer_account ON(balancer_holding.account_id = balancer_account.id) " +
+           "LEFT OUTER JOIN balancer_security ON(balancer_holding.asset_id = balancer_security.id) " +
+           "LEFT JOIN balancer_securityprice ON(balancer_holding.asset_id = balancer_securityprice.security_id), " +
+           "(SELECT balancer_holding.account_id A, balancer_holding.asset_id B, max(balancer_holding.as_of_dt) C " +
+           "FROM balancer_holding WHERE DATE(balancer_holding.as_of_dt) <= '2017-10-28' " +
+           "GROUP BY balancer_holding.account_id, balancer_holding.asset_id), " +
+           "(SELECT balancer_securityprice.security_id Y, max(balancer_securityprice.price_dt) Z " +
+           "FROM balancer_securityprice " +
+           "WHERE DATE(balancer_securityprice.price_dt) <= '2017-10-28' " +
+           "GROUP BY balancer_securityprice.security_id) " +
+           "WHERE balancer_holding.account_id = A AND balancer_holding.asset_id = B AND " +
+           "balancer_holding.as_of_dt = C AND balancer_securityprice.security_id = Y AND " +
+           "balancer_securityprice.price_dt = Z;")
+
+    ret_list = {}
+    for qry_date in at_dts:
+        cursor = connection.cursor()
+        cursor.execute(sql, [qry_date, qry_date, qry_date])
+        values_for_day = dictfetchall(cursor=cursor)
+        ret_list[qry_date] = values_for_day
+        cursor.close()

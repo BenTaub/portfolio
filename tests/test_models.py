@@ -6,11 +6,6 @@ import balancer.models
 
 
 class Dictfetchall(TestCase):
-    # def tearDown(self):
-    #     Security().objects.all().delete()
-    #     # balancer.models.Security().objects.all().delete()
-    #     # test_tbl = balancer.models.Security()
-    #     # test_tbl.objects.all().delete()
 
     def create_test_recs(self, num_recs: int = 1):
         """
@@ -46,6 +41,23 @@ class Dictfetchall(TestCase):
         test_recs, cursor = self.create_test_recs(num_recs=3)
         self.assertListEqual(test_recs, balancer.models.dictfetchall(cursor=cursor))
 
+
+class GetHoldingsAndValues(TestCase):
+    def create_test_recs_security(self, num_recs: int):
+        while num_recs > 0:
+            num_recs -= 1
+
+            security_rec = balancer.models.Security()
+
+    def test_send_one_date(self):
+
+# def test_send_mult_dates(self):
+# def test_0_holdings(self):
+#     # BEN - make sure there are security and account records
+# def test_1_holding(self):
+# def test_mult_holdings(self):
+# def test_1_holding_no_security_recs(self):
+# def test_1_holding_no_acct_recs(self):
 
 # if __name__ == '__main__':
 #     unittest.main()
