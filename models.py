@@ -162,12 +162,15 @@ def get_holdings_and_values(at_dts: list):
 
     # TODO: This doesn't return any records if we don't have price dates <= query date - fix this (outer join to
     # prices?)
-    sql = ("SELECT DATE(%s) AS AT_DT, " +
-           "balancer_holding.id, balancer_holding.account_id, balancer_account.name, " +
-           "balancer_holding.asset_id, balancer_security.name, " +
-           "balancer_holding.as_of_dt, balancer_holding.num_shares, " +
-           "balancer_securityprice.price_dt, balancer_securityprice.price, " +
-           "balancer_holding.num_shares * balancer_securityprice.price AS value " +
+    sql = ("SELECT DATE(%s) AS VALUE_DATE, " +
+           "balancer_holding.id AS HOLDING_ID, balancer_holding.account_id AS ACCOUNT_ID, " +
+           "balancer_account.name AS ACCOUNT_NAME, " +
+           "balancer_holding.asset_id AS ASSET_ID, balancer_security.name AS ASSET_NAME, " +
+           "balancer_holding.id AS HOLDING_ID, " +
+           "balancer_holding.as_of_dt AS HOLDING_DATE, balancer_holding.num_shares AS NUM_SHARES, " +
+           "balancer_securityprice.id AS PRICE_ID, " +
+           "balancer_securityprice.price_dt AS PRICE_DATE, balancer_securityprice.price AS PRICE, " +
+           "balancer_holding.num_shares * balancer_securityprice.price AS VALUE " +
            "FROM balancer_holding " +
            "LEFT OUTER JOIN balancer_account ON(balancer_holding.account_id = balancer_account.id) " +
            "LEFT OUTER JOIN balancer_security ON(balancer_holding.asset_id = balancer_security.id) " +

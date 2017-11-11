@@ -45,6 +45,21 @@ class Dictfetchall(TestCase):
 
 
 class GetHoldingsAndValues(TestCase):
+    """Tests the SQL that returns holdings & their values.
+    NOTE: MAKE SURE TO TEST ALL THE TABLES THAT GO INTO THIS: Security, SecurityPrice, Holdings, Accounts"""
+
+    # def compare_results(self, securities: list, accounts: list, prices: list, holdings: list, results: list):
+    #     """Compares results from the db to the data captured when the underlying records were created
+    #     :param securities: A list of Security records containing test data
+    #     :param accounts: A list of Account records containing test data
+    #     :param prices: A list of SecurityPrice records containing test data
+    #     :param holdings: A list of Holdings records containing test data
+    #     :param results: A list of dicts containing the results of the query that got the holdings & values
+    #     :return:
+    #     """
+
+
+
     def test_one_date(self):
         test_securities = create_test_recs_security(num_recs=1)
         test_accounts = create_test_recs_acct(num_recs=1)
@@ -55,14 +70,30 @@ class GetHoldingsAndValues(TestCase):
                           'notes': 'Holdings Notes 1',
                           'num_shares': 1, 'as_of_dt': datetime.datetime.now()}]
         test_holdings = create_test_recs_holdings(test_holdings)
-        result_recs = balancer.models.get_holdings_and_values(test_holdings[0]['as_of_dt'])
-        pass
+        test_dt = test_holdings[0].as_of_dt.date()
+        result_recs = balancer.models.get_holdings_and_values(test_dt)
+
+        self.assertEqual(len(test_holdings), 1)  # Make sure we got the right # of records back
+        self.assertIn(test_dt, result_recs)  # Make sure the dates we sent are in results
+        self.assertEqual(test_accounts[0].id, result_recs[test_dt][0]['ACCOUNT_ID'])  # Test acct id
+        self.assertEqual(test_accounts[0].name, result_recs[test_dt][0]['ACCOUNT_NAME'])  # Test acct name
+        self.assertEqual(test_securities[0].id, result_recs[test_dt][0]['ASSET_ID'])  # Test security ID
+        self.assertEqual(test_securities[0].name, result_recs[test_dt][0]['ASSET_NAME'])  # Test security name
+        self.assertEqual(test_holdings[0].id, result_recs[test_dt][0]['HOLDING_ID'])  # Test holding ID
+        self.assertEqual(test_holdings[0].as_of_dt.date(), result_recs[test_dt][0]['HOLDING_DATE'])  # Test holding date
+        self.assertEqual(test_holdings[0].num_shares, result_recs[test_dt][0]['NUM_SHARES'])  # Test # shares
+        self.assertEqual(test_prices[0].id, result_recs[test_dt][0]['PRICE_ID'])  # Test price rec ID
+        self.assertEqual(test_prices[0].price_dt, result_recs[test_dt][0]['PRICE_DATE'])  # Test price rec date
+        self.assertEqual(test_prices[0].price, result_recs[test_dt][0]['PRICE'])  # Test price rec price
+        self.assertEqual(test_prices[0].price * test_holdings[0].num_shares,
+                         result_recs[test_dt][0]['VALUE'])  # Test value
+
 
 
 # def test_no_records_in_future
 # def test_some_records_in_future
 # def test_all_records_in_future
-# def test_mult_price_dates(self):
+# def test_mult_price_dates(self):  SOME SHOULD BE EARLIER THAN OUR EARLIEST DATE
 # def test_0_holdings(self):
 #     # BEN - make sure there are security and account records
 # def test_1_holding(self):
@@ -70,6 +101,8 @@ class GetHoldingsAndValues(TestCase):
 # def test_mult_holdings_mult_holding_dates(self):
 # def test_1_holding_no_security_recs(self):
 # def test_1_holding_no_acct_recs(self):
+# def test_1_holding_no_price_recs(self):
+# def test_mult_accts
 
 
 def create_test_recs_prices(price_list: list):
