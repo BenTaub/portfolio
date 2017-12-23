@@ -54,7 +54,8 @@ class Account(models.Model):
 
 
 class Holding(models.Model):
-    """Each record represents one security held in an account at a point in time"""
+    """Each record represents one security held in an account at a point in time.
+       We indicate a closed position by setting the num_shares to zero"""
     asset = models.ForeignKey(to=Security)
     account = models.ForeignKey(to=Account, blank=True, null=True)  # Assets aren't necessarily in an account
     notes = models.TextField(blank=True, null=True)
@@ -148,7 +149,7 @@ def store_form_in_db(form: forms.BaseForm, db_model, commit_fg: bool = True):
     return
 
 
-def get_holdings_and_values(at_dts: list):
+def get_holdings_and_values(at_dts: list or datetime):
     """
     Accepts a single date or a set of dates and returns a list of dicts. The key of each dict represents one of the
     dates in at_dts. The values of each dict is another list of dicts with details about the value of each holding at
@@ -185,7 +186,8 @@ def get_holdings_and_values(at_dts: list):
            "GROUP BY balancer_securityprice.security_id) " +
            "WHERE balancer_holding.account_id = A AND balancer_holding.asset_id = B AND " +
            "balancer_holding.as_of_dt = C AND balancer_securityprice.security_id = Y AND " +
-           "balancer_securityprice.price_dt = Z;")
+           "balancer_securityprice.price_dt = Z " +
+           "ORDER BY VALUE_DATE;")
 
     ret_dict = {}
     for qry_date in at_dts:
