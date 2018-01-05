@@ -1,5 +1,6 @@
 import datetime
 
+import django.core.validators
 import django.utils.timezone
 from django import forms
 from django.db import connection
@@ -87,6 +88,18 @@ class Holding(models.Model):
         super(Holding, self).save(*args, **kwargs)  # Call the "real" save() method.
 
 
+class TargetBalance(models.Model):
+    """
+    The target balance you are trying to achieve. Note that in the current release, each category will allow
+    only one security to be associated with it. In other words, each security represents a category.
+    """
+    category = models.TextField()
+    notes = models.TextField(blank=True, null=True)
+    percent = models.PositiveSmallIntegerField(validators=[django.core.validators.MaxValueValidator(100)],
+                                               help_text='Percent of portfolio in this category')
+    security = models.ForeignKey(Security)
+
+
 def dictfetchall(cursor):
     """
     Gets all the rows from a cursor and returns then in a list of dicts. Each rec is a db rec and each key is
@@ -149,7 +162,7 @@ def store_form_in_db(form: forms.BaseForm, db_model, commit_fg: bool = True):
     return
 
 
-def get_holdings_and_values(at_dts: list or datetime):
+def get_holdings_and_values(at_dts: list or datetime) -> dict:
     """
     Accepts a single date or a set of dates and returns a list of dicts. The key of each dict represents one of the
     dates in at_dts. The values of each dict is another list of dicts with details about the value of each holding at
