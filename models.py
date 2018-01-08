@@ -180,7 +180,7 @@ def get_holdings_and_values(at_dts: list or datetime) -> dict:
            "balancer_holding.id AS HOLDING_ID, balancer_holding.account_id AS ACCOUNT_ID, " +
            "balancer_account.name AS ACCOUNT_NAME, " +
            "balancer_holding.asset_id AS ASSET_ID, balancer_security.name AS ASSET_NAME, " +
-           "balancer_holding.id AS HOLDING_ID, " +
+           # "balancer_holding.id AS HOLDING_ID, " +
            "balancer_holding.as_of_dt AS HOLDING_DATE, balancer_holding.num_shares AS NUM_SHARES, " +
            "balancer_securityprice.id AS PRICE_ID, " +
            "balancer_securityprice.price_dt AS PRICE_DATE, balancer_securityprice.price AS PRICE, " +
