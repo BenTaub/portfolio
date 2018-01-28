@@ -93,11 +93,11 @@ class TargetBalance(models.Model):
     The target balance you are trying to achieve. Note that in the current release, each category will allow
     only one security to be associated with it. In other words, each security represents a category.
     """
-    category = models.TextField()
+    category = models.TextField(help_text='The category of investment (e.g. bonds, US Equities)')
     notes = models.TextField(blank=True, null=True)
     percent = models.PositiveSmallIntegerField(validators=[django.core.validators.MaxValueValidator(100)],
-                                               help_text='Percent of portfolio in this category')
-    security = models.ForeignKey(Security)
+                                               help_text='Percent of portfolio in this category - stored as int')
+    security = models.ForeignKey(Security, help_text='The security to purchase for assets of this category')
 
 
 def dictfetchall(cursor):
