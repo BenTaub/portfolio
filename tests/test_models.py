@@ -246,6 +246,7 @@ class GetHoldingsAndValues(TestCase):
 def create_test_recs_prices(price_list: list) -> list:
     """A common routine for creating test price records. Returns a list of dicts containing the data that
     went into those records to use in comparing results to data in the sample records
+
     price_list: a list of dicts where each dict contains the fields required to create a price record
     :rtype: list
     """
@@ -277,7 +278,7 @@ def create_test_recs_acct(dates: list):
     A common routine for creating test account records. Returns a list of dicts containing the data that
     went into those records to use in comparing results to data in the sample records
     :param dates: List of dates for which accounts s/b created
-    :return: Account records for the recs created
+    :return: List of account records for the recs created
     """
     ret_recs = []
     for rec_dt in dates:
@@ -292,12 +293,11 @@ def create_test_recs_acct(dates: list):
     return ret_recs
 
 
-# def create_test_recs_security(num_recs: int):
 def create_test_recs_security(dates: list):
     """A common routine for creating test security records. Returns a list of dicts containing the data that
     went into those records to use in comparing results to data in the sample records
     :param dates: List of dates for which securities s/b created
-    :return: Account records for the recs created
+    :return: List of security records for the recs created
     """
     ret_recs = []
     for rec_date in dates:
